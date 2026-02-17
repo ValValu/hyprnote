@@ -16,7 +16,7 @@ import { ErrorComponent, NotFoundComponent } from "./components/control";
 import { EventListeners } from "./components/event-listeners";
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
-import { env } from "./env";
+// import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";
 import { routeTree } from "./routeTree.gen";
 import {
