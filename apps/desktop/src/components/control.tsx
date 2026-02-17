@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react";
 import {
   type ErrorRouteComponent,
   NotFoundRouteComponent,
@@ -29,7 +28,7 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    Sentry.captureException(error);
+    console.error(error);
   }, [error]);
 
   const handleRestart = async () => {

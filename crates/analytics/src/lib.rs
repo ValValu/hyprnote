@@ -11,27 +11,19 @@ pub struct DeviceFingerprint(pub String);
 #[derive(Clone)]
 pub struct AuthenticatedUserId(pub String);
 
-use hypr_posthog::PosthogClient;
 use outlit::OutlitClient;
 
 #[derive(Clone)]
 pub struct AnalyticsClient {
-    posthog: Option<PosthogClient>,
     outlit: Option<OutlitClient>,
 }
 
 #[derive(Default)]
 pub struct AnalyticsClientBuilder {
-    posthog: Option<PosthogClient>,
     outlit: Option<OutlitClient>,
 }
 
 impl AnalyticsClientBuilder {
-    pub fn with_posthog(mut self, key: impl Into<String>) -> Self {
-        self.posthog = Some(PosthogClient::new(key));
-        self
-    }
-
     pub fn with_outlit(mut self, key: impl Into<String>) -> Self {
         self.outlit = OutlitClient::new(key);
         self
@@ -39,7 +31,6 @@ impl AnalyticsClientBuilder {
 
     pub fn build(self) -> AnalyticsClient {
         AnalyticsClient {
-            posthog: self.posthog,
             outlit: self.outlit,
         }
     }
@@ -53,16 +44,10 @@ impl AnalyticsClient {
     ) -> Result<(), Error> {
         let distinct_id = distinct_id.into();
 
-        if let Some(posthog) = &self.posthog {
-            posthog
-                .event(&distinct_id, &payload.event, &payload.props)
-                .await?;
-        } else {
-            tracing::info!("event: {:?}", payload);
-        }
-
         if let Some(outlit) = &self.outlit {
             outlit.event(&distinct_id, &payload).await;
+        } else {
+            tracing::info!("event: {:?}", payload);
         }
 
         Ok(())
@@ -75,21 +60,10 @@ impl AnalyticsClient {
     ) -> Result<(), Error> {
         let distinct_id = distinct_id.into();
 
-        if let Some(posthog) = &self.posthog {
-            posthog
-                .set_properties(
-                    &distinct_id,
-                    &payload.set,
-                    &payload.set_once,
-                    payload.email.as_deref(),
-                )
-                .await?;
-        } else {
-            tracing::info!("set_properties: {:?}", payload);
-        }
-
         if let Some(outlit) = &self.outlit {
             outlit.identify(&distinct_id, &payload).await;
+        } else {
+            tracing::info!("set_properties: {:?}", payload);
         }
 
         Ok(())
@@ -104,16 +78,8 @@ impl AnalyticsClient {
         let user_id = user_id.into();
         let anon_distinct_id = anon_distinct_id.into();
 
-        if let Some(posthog) = &self.posthog {
-            posthog
-                .identify(
-                    &user_id,
-                    &anon_distinct_id,
-                    &payload.set,
-                    &payload.set_once,
-                    payload.email.as_deref(),
-                )
-                .await?;
+        if let Some(outlit) = &self.outlit {
+            outlit.identify(&user_id, &payload).await;
         } else {
             tracing::info!(
                 "identify: user_id={}, anon_distinct_id={}, payload={:?}",
@@ -121,10 +87,6 @@ impl AnalyticsClient {
                 anon_distinct_id,
                 payload
             );
-        }
-
-        if let Some(outlit) = &self.outlit {
-            outlit.identify(&user_id, &payload).await;
         }
 
         Ok(())

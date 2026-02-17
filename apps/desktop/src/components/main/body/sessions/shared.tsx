@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 
 import { useListener } from "../../../../contexts/listener";
-import { useNetwork } from "../../../../contexts/network";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/store/main";
@@ -82,22 +81,18 @@ export function useListenButtonState(sessionId: string) {
   const taskId = createTaskId(sessionId, "enhance");
   const { status } = useAITaskTask(taskId, "enhance");
   const generating = status === "generating";
-  const { conn: sttConnection, local, isLocalModel } = useSTTConnection();
-  const { isOnline } = useNetwork();
+  const { conn: sttConnection, local } = useSTTConnection();
 
   const localServerStatus = local.data?.status ?? "unavailable";
   const isLocalServerLoading = localServerStatus === "loading";
   const isLocalModelNotDownloaded = localServerStatus === "not_downloaded";
-
-  const isOfflineWithCloudModel = !isOnline && !isLocalModel;
 
   const shouldRender = !active && !generating;
   const isDisabled =
     !sttConnection ||
     batching ||
     isLocalServerLoading ||
-    isLocalModelNotDownloaded ||
-    isOfflineWithCloudModel;
+    isLocalModelNotDownloaded;
 
   let warningMessage = "";
   if (lastError) {
@@ -106,8 +101,6 @@ export function useListenButtonState(sessionId: string) {
     warningMessage = "Selected model is not downloaded.";
   } else if (isLocalServerLoading) {
     warningMessage = "Local STT server is starting up...";
-  } else if (isOfflineWithCloudModel) {
-    warningMessage = "You're offline. Use on-device models to continue.";
   } else if (!sttConnection) {
     warningMessage = "Transcription model not available.";
   } else if (batching) {

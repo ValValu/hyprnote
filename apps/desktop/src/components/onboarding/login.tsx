@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react";
 import { CheckCircle2Icon, Loader2Icon, XCircleIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -107,10 +106,7 @@ export function LoginSection({ onContinue }: { onContinue: () => void }) {
         });
 
         if (error || !startData?.started) {
-          Sentry.captureMessage("Trial start failed", {
-            level: "warning",
-            extra: { error },
-          });
+          console.warn("Trial start failed", error);
           setTrialPhase({ step: "done", result: "failed" });
           await auth.refreshSession();
           await new Promise((r) => setTimeout(r, 1500));
@@ -131,7 +127,6 @@ export function LoginSection({ onContinue }: { onContinue: () => void }) {
         await auth.refreshSession();
         await new Promise((r) => setTimeout(r, 3000));
       } catch (e) {
-        Sentry.captureException(e);
         console.error(e);
         setTrialPhase({ step: "done", result: "failed" });
         await new Promise((r) => setTimeout(r, 1500));

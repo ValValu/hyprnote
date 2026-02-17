@@ -23,41 +23,6 @@ pub async fn main() {
             None => (None, None),
         };
 
-    let sentry_client = {
-        let dsn = option_env!("SENTRY_DSN");
-
-        if let Some(dsn) = dsn {
-            let release =
-                option_env!("APP_VERSION").map(|v| format!("hyprnote-desktop@{}", v).into());
-
-            let client = sentry::init((
-                dsn,
-                sentry::ClientOptions {
-                    release,
-                    traces_sample_rate: 1.0,
-                    auto_session_tracking: false,
-                    ..Default::default()
-                },
-            ));
-
-            sentry::configure_scope(|scope| {
-                scope.set_tag("service", "hyprnote-desktop");
-                scope.set_user(Some(sentry::User {
-                    id: Some(hypr_host::fingerprint()),
-                    ..Default::default()
-                }));
-            });
-
-            Some(client)
-        } else {
-            None
-        }
-    };
-
-    let _guard = sentry_client
-        .as_ref()
-        .map(|client| tauri_plugin_sentry::minidump::init(client));
-
     let mut builder = tauri::Builder::default();
 
     // https://docs.crabnebula.dev/plugins/tauri-e2e-tests/#macos-support
@@ -90,7 +55,6 @@ pub async fn main() {
         .plugin(tauri_plugin_icon::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_permissions::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_deeplink2::init())
         .plugin(tauri_plugin_fs_db::init())
@@ -132,22 +96,10 @@ pub async fn main() {
                     .map(|ctx| ctx.supervisor.get_cell()),
             },
         ))
-        .plugin(tauri_plugin_network::init(
-            tauri_plugin_network::InitOptions {
-                parent_supervisor: root_supervisor_ctx
-                    .as_ref()
-                    .map(|ctx| ctx.supervisor.get_cell()),
-            },
-        ))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
-        ))
-        .plugin(tauri_plugin_updater2::init());
-
-    if let Some(client) = sentry_client.as_ref() {
-        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
-    }
+        ));
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {

@@ -18,7 +18,7 @@ members = [
   "crates/*",
   "plugins/*",
 ]
-exclude = ["plugins/cli2", "plugins/db", "plugins/export"]
+exclude = ["plugins/cli2", "plugins/db", "plugins/export", "plugins/network", "plugins/updater2", "crates/posthog"]
 
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
@@ -88,7 +88,6 @@ hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openrouter = { path = "crates/openrouter", package = "openrouter" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
 hypr-porkbun = { path = "crates/porkbun", package = "porkbun" }
-hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
@@ -138,11 +137,9 @@ tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
-tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2.4"
 tauri-plugin-store = "2.4"
-tauri-plugin-updater = "2.10"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -171,7 +168,6 @@ tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-mcp = { path = "plugins/mcp" }
 tauri-plugin-misc = { path = "plugins/misc" }
-tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-notify = { path = "plugins/notify" }
 tauri-plugin-opener2 = { path = "plugins/opener2" }
@@ -189,7 +185,6 @@ tauri-plugin-tantivy = { path = "plugins/tantivy" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
-tauri-plugin-updater2 = { path = "plugins/updater2" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
@@ -272,7 +267,6 @@ async-stripe-core = { version = "1.0.0-rc.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-sentry = "=0.42.0"
 vergen-gix = "1"
 
 askama = "0.15"

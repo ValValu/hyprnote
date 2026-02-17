@@ -5,7 +5,6 @@ use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::http::Response;
 use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
-use sentry::SentryFutureExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use tokio_tungstenite::{
@@ -97,18 +96,14 @@ impl WebSocketProxy {
 
     pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
         let proxy = self.clone();
-        let hub = sentry::Hub::current();
-        ws.on_upgrade(move |socket| {
-            async move {
-                if let Err(e) = proxy.handle(socket).await {
-                    tracing::error!(
-                        error = %e,
-                        "websocket_proxy_error: {}",
-                        e
-                    );
-                }
+        ws.on_upgrade(move |socket| async move {
+            if let Err(e) = proxy.handle(socket).await {
+                tracing::error!(
+                    error = %e,
+                    "websocket_proxy_error: {}",
+                    e
+                );
             }
-            .bind_hub(sentry::Hub::new_from_top(hub))
         })
         .into_response()
     }

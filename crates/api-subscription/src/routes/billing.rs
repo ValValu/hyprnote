@@ -119,7 +119,6 @@ pub async fn start_trial(
         }
         Err(e) => {
             tracing::error!(error = %e, "get_or_create_customer failed");
-            sentry::capture_message(&e.to_string(), sentry::Level::Error);
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse {
@@ -138,7 +137,6 @@ pub async fn start_trial(
     if let Err(e) = create_trial_subscription(&state.stripe, &customer_id, price_id, user_id).await
     {
         tracing::error!(error = %e, "failed to create Stripe subscription");
-        sentry::capture_message(&e.to_string(), sentry::Level::Error);
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {

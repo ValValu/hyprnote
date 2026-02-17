@@ -2,10 +2,6 @@ import { type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect, useRef } from "react";
 
 import { events as notificationEvents } from "@hypr/plugin-notification";
-import {
-  commands as updaterCommands,
-  events as updaterEvents,
-} from "@hypr/plugin-updater2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 import { useConfigValue } from "../config/use-config";
@@ -15,34 +11,6 @@ import {
   getOrCreateSessionForEventId,
 } from "../store/tinybase/store/sessions";
 import { useTabs } from "../store/zustand/tabs";
-
-function useUpdaterEvents() {
-  const openNew = useTabs((state) => state.openNew);
-
-  useEffect(() => {
-    if (getCurrentWebviewWindowLabel() !== "main") {
-      return;
-    }
-
-    let unlisten: UnlistenFn | null = null;
-
-    void updaterEvents.updatedEvent
-      .listen(({ payload: { previous, current } }) => {
-        openNew({
-          type: "changelog",
-          state: { previous, current },
-        });
-      })
-      .then((f) => {
-        unlisten = f;
-        updaterCommands.maybeEmitUpdated();
-      });
-
-    return () => {
-      unlisten?.();
-    };
-  }, [openNew]);
-}
 
 function useNotificationEvents() {
   const store = main.UI.useStore(main.STORE_ID);
@@ -126,7 +94,6 @@ function useNotificationEvents() {
 }
 
 export function EventListeners() {
-  useUpdaterEvents();
   useNotificationEvents();
 
   return null;

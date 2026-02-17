@@ -1,43 +1,7 @@
-use std::collections::BTreeMap;
-
 use tauri_specta::Event;
 
-use super::SessionParams;
 use super::session_span;
 use crate::SessionLifecycleEvent;
-
-pub(crate) fn configure_sentry_session_context(params: &SessionParams) {
-    sentry::configure_scope(|scope| {
-        scope.set_tag("session_id", &params.session_id);
-        scope.set_tag(
-            "session_type",
-            if params.onboarding {
-                "onboarding"
-            } else {
-                "production"
-            },
-        );
-
-        let mut session_context = BTreeMap::new();
-        session_context.insert("session_id".to_string(), params.session_id.clone().into());
-        session_context.insert("model".to_string(), params.model.clone().into());
-        session_context.insert("record_enabled".to_string(), params.record_enabled.into());
-        session_context.insert("onboarding".to_string(), params.onboarding.into());
-        session_context.insert(
-            "languages".to_string(),
-            format!("{:?}", params.languages).into(),
-        );
-        scope.set_context("session", sentry::protocol::Context::Other(session_context));
-    });
-}
-
-pub(crate) fn clear_sentry_session_context() {
-    sentry::configure_scope(|scope| {
-        scope.remove_tag("session_id");
-        scope.remove_tag("session_type");
-        scope.remove_context("session");
-    });
-}
 
 pub(crate) fn emit_session_ended(
     app: &tauri::AppHandle,
@@ -67,7 +31,6 @@ pub(crate) fn emit_session_ended(
         tracing::info!("session_stopped");
     }
 
-    clear_sentry_session_context();
 }
 
 pub(crate) async fn wait_for_actor_shutdown(actor_name: ractor::ActorName) {

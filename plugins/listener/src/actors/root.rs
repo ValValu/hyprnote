@@ -6,9 +6,7 @@ use tauri_specta::Event;
 use tracing::Instrument;
 
 use crate::SessionLifecycleEvent;
-use crate::actors::session::lifecycle::{
-    clear_sentry_session_context, configure_sentry_session_context, emit_session_ended,
-};
+use crate::actors::session::lifecycle::emit_session_ended;
 use crate::actors::{
     SessionContext, SessionMsg, SessionParams, session_span, spawn_session_supervisor,
 };
@@ -140,13 +138,10 @@ async fn start_session_impl(
             return false;
         }
 
-        configure_sentry_session_context(&params);
-
         let app_dir = match state.app.settings().cached_vault_base() {
             Ok(base) => base.join("sessions"),
             Err(e) => {
                 tracing::error!(error = ?e, "failed_to_resolve_sessions_base_dir");
-                clear_sentry_session_context();
                 return false;
             }
         };
@@ -185,7 +180,6 @@ async fn start_session_impl(
             }
             Err(e) => {
                 tracing::error!(error = ?e, "failed_to_start_session");
-                clear_sentry_session_context();
 
                 use tauri_plugin_tray::TrayPluginExt;
                 let _ = state.app.tray().set_start_disabled(false);

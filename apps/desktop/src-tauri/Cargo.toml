@@ -52,7 +52,6 @@ tauri-plugin-listener2 = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-mcp = { workspace = true }
 tauri-plugin-misc = { workspace = true }
-tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-notify = { workspace = true }
 tauri-plugin-opener = { workspace = true }
@@ -66,7 +65,6 @@ tauri-plugin-prevent-default = { workspace = true }
 tauri-plugin-process = { workspace = true }
 tauri-plugin-relay = { workspace = true }
 tauri-plugin-screen = { workspace = true }
-tauri-plugin-sentry = { workspace = true }
 tauri-plugin-settings = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
 tauri-plugin-shell = { workspace = true }
@@ -78,8 +76,6 @@ tauri-plugin-tantivy = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
 tauri-plugin-tray = { workspace = true }
-tauri-plugin-updater = { workspace = true }
-tauri-plugin-updater2 = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
@@ -87,7 +83,6 @@ specta = { workspace = true }
 specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-sentry = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }

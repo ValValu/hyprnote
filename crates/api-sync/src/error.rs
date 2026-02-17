@@ -38,7 +38,6 @@ impl IntoResponse for SyncError {
             Self::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             Self::Internal(msg) => {
                 tracing::error!(error = %msg, "internal_error");
-                sentry::capture_message(msg, sentry::Level::Error);
                 (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
             }
         };

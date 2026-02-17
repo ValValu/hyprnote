@@ -8,7 +8,6 @@ pub use errors::*;
 pub use ext::*;
 pub use utils::cleanup_old_daily_logs;
 
-use sentry::integrations::tracing::EventFilter;
 use tauri::Manager;
 use tracing_subscriber::{
     EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
@@ -17,14 +16,6 @@ use tracing_subscriber::{
 use utils::{cleanup_legacy_logs, make_file_writer_if_enabled};
 
 const PLUGIN_NAME: &str = "tracing";
-
-fn sentry_event_filter(metadata: &tracing::Metadata<'_>) -> EventFilter {
-    match *metadata.level() {
-        tracing::Level::ERROR | tracing::Level::WARN => EventFilter::Event,
-        tracing::Level::INFO => EventFilter::Breadcrumb,
-        tracing::Level::DEBUG | tracing::Level::TRACE => EventFilter::Ignore,
-    }
-}
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
@@ -73,9 +64,6 @@ impl Builder {
                     .unwrap_or_else(|_| EnvFilter::new("info"))
                     .add_directive("ort=warn".parse().unwrap());
 
-                let sentry_layer =
-                    sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
-
                 let logs_dir = match app.tracing().logs_dir() {
                     Ok(dir) => dir,
                     Err(e) => {
@@ -86,7 +74,6 @@ impl Builder {
                 if let Some((file_writer, guard)) = make_file_writer_if_enabled(true, &logs_dir) {
                     tracing_subscriber::Registry::default()
                         .with(env_filter)
-                        .with(sentry_layer)
                         .with(fmt::layer())
                         .with(fmt::layer().with_ansi(false).with_writer(file_writer))
                         .init();
@@ -94,7 +81,6 @@ impl Builder {
                 } else {
                     tracing_subscriber::Registry::default()
                         .with(env_filter)
-                        .with(sentry_layer)
                         .with(fmt::layer())
                         .init();
                 }

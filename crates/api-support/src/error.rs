@@ -44,7 +44,6 @@ impl IntoResponse for SupportError {
                 .into_response(),
             Self::Chatwoot(message) => {
                 tracing::error!(error = %message, "chatwoot_error");
-                sentry::capture_message(&message, sentry::Level::Error);
                 (
                     StatusCode::BAD_GATEWAY,
                     Json(crate::routes::FeedbackResponse {
@@ -57,7 +56,6 @@ impl IntoResponse for SupportError {
             }
             Self::GitHub(message) => {
                 tracing::error!(error = %message, "github_error");
-                sentry::capture_message(&message, sentry::Level::Error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(crate::routes::FeedbackResponse {
@@ -70,7 +68,6 @@ impl IntoResponse for SupportError {
             }
             Self::Internal(message) => {
                 tracing::error!(error = %message, "internal_error");
-                sentry::capture_message(&message, sentry::Level::Error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(crate::routes::FeedbackResponse {

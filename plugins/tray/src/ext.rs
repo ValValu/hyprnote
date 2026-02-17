@@ -6,8 +6,8 @@ use tauri::{
 };
 
 use crate::menu_items::{
-    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, MenuItemHandler, TrayCheckUpdate, TrayOpen,
-    TrayQuit, TraySettings, TrayStart, TrayVersion,
+    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, MenuItemHandler, TrayOpen, TrayQuit,
+    TraySettings, TrayStart, TrayVersion,
 };
 
 const TRAY_ID: &str = "hypr-tray";
@@ -22,7 +22,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         let app = self.manager.app_handle();
 
         let info_item = AppInfo::build(app)?;
-        let check_update_item = TrayCheckUpdate::build(app)?;
         let settings_item = TraySettings::build(app)?;
         let new_item = AppNew::build(app)?;
         let report_bug_item = HelpReportBug::build(app)?;
@@ -44,7 +43,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                     true,
                     &[
                         &info_item,
-                        &check_update_item,
                         &settings_item,
                         &PredefinedMenuItem::separator(app)?,
                         &PredefinedMenuItem::services(app, None)?,
@@ -99,8 +97,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                 &TrayOpen::build(app)?,
                 &TrayStart::build_with_disabled(app, false)?,
                 &PredefinedMenuItem::separator(app)?,
-                &TrayCheckUpdate::build(app)?,
-                &PredefinedMenuItem::separator(app)?,
                 &TrayQuit::build(app)?,
             ],
         )?;
@@ -128,8 +124,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                     &PredefinedMenuItem::separator(app)?,
                     &TrayOpen::build(app)?,
                     &TrayStart::build_with_disabled(app, disabled)?,
-                    &PredefinedMenuItem::separator(app)?,
-                    &TrayCheckUpdate::build(app)?,
                     &PredefinedMenuItem::separator(app)?,
                     &TrayQuit::build(app)?,
                 ],

@@ -1,10 +1,7 @@
 use serde::{Serialize, ser::Serializer};
 
 #[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error(transparent)]
-    PosthogError(#[from] hypr_posthog::Error),
-}
+pub enum Error {}
 
 impl Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>

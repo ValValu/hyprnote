@@ -32,7 +32,6 @@ dotenvy = { workspace = true }
 envy = { workspace = true }
 governor = { workspace = true }
 jsonwebtoken = { workspace = true }
-sentry = { workspace = true, features = ["tower", "tower-axum-matched-path", "tracing"] }
 tower = { workspace = true }
 utoipa = { workspace = true }
 

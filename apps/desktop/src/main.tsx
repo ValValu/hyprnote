@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode, useMemo } from "react";
@@ -79,24 +78,6 @@ function App() {
       }}
     />
   );
-}
-
-if (env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: env.VITE_SENTRY_DSN,
-    release: env.VITE_APP_VERSION
-      ? `hyprnote-desktop@${env.VITE_APP_VERSION}`
-      : undefined,
-    environment: import.meta.env.MODE,
-    tracePropagationTargets: [env.VITE_API_URL],
-    integrations: [
-      Sentry.tanstackRouterBrowserTracingIntegration(router),
-      Sentry.replayIntegration(),
-    ],
-    tracesSampleRate: 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-  });
 }
 
 function AppWithTiny() {

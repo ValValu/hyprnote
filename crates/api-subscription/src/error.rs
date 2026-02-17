@@ -36,17 +36,14 @@ impl IntoResponse for SubscriptionError {
         let error_code = match &self {
             Self::SupabaseRequest(msg) => {
                 tracing::error!(error = %msg, "supabase_error");
-                sentry::capture_message(msg, sentry::Level::Error);
                 "supabase_error"
             }
             Self::Stripe(msg) => {
                 tracing::error!(error = %msg, "stripe_error");
-                sentry::capture_message(msg, sentry::Level::Error);
                 "stripe_error"
             }
             Self::Internal(msg) => {
                 tracing::error!(error = %msg, "internal_error");
-                sentry::capture_message(msg, sentry::Level::Error);
                 "internal_server_error"
             }
         };

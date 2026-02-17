@@ -17,7 +17,6 @@ urlencoding = { workspace = true }
 utoipa = { workspace = true }
 
 axum = { workspace = true }
-sentry = { workspace = true }
 tracing = { workspace = true }
 
 jsonwebtoken = { workspace = true }

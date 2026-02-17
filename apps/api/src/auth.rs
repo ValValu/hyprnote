@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use axum::{extract::Request, middleware::Next, response::Response};
 
 use hypr_api_auth::AuthContext;
@@ -15,29 +13,6 @@ pub async fn sentry_and_analytics(mut request: Request, next: Next) -> Response 
         .map(String::from);
 
     if let Some(auth) = request.extensions().get::<AuthContext>() {
-        sentry::configure_scope(|scope| {
-            scope.set_user(Some(sentry::User {
-                id: device_fingerprint.clone(),
-                email: auth.claims.email.clone(),
-                username: Some(auth.claims.sub.clone()),
-                ..Default::default()
-            }));
-            scope.set_tag("user.id", &auth.claims.sub);
-
-            let mut ctx = BTreeMap::new();
-            ctx.insert(
-                "entitlements".into(),
-                sentry::protocol::Value::Array(
-                    auth.claims
-                        .entitlements
-                        .iter()
-                        .map(|e| sentry::protocol::Value::String(e.clone()))
-                        .collect(),
-                ),
-            );
-            scope.set_context("user_claims", sentry::protocol::Context::Other(ctx));
-        });
-
         let user_id = auth.claims.sub.clone();
         request
             .extensions_mut()

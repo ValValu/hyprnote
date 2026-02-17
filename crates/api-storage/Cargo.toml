@@ -11,7 +11,6 @@ hypr-nango = { workspace = true }
 utoipa = { workspace = true }
 
 axum = { workspace = true }
-sentry = { workspace = true }
 tracing = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }

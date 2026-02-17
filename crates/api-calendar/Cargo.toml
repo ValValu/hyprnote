@@ -13,7 +13,6 @@ chrono = { workspace = true, features = ["serde"] }
 utoipa = { workspace = true }
 
 axum = { workspace = true }
-sentry = { workspace = true }
 tracing = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }

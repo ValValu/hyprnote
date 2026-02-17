@@ -6,7 +6,6 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
-import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
 import { useNewNote } from "./main/shared";
 import {
@@ -20,9 +19,7 @@ export default function MainAppLayout() {
   return (
     <AuthProvider>
       <BillingProvider>
-        <NetworkProvider>
-          <MainAppContent />
-        </NetworkProvider>
+        <MainAppContent />
       </BillingProvider>
     </AuthProvider>
   );

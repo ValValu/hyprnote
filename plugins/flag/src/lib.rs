@@ -38,11 +38,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let posthog_key = option_env!("POSTHOG_API_KEY");
-
-            let client = posthog_key.map(hypr_flag::FlagClient::new);
             let state = FlagState {
-                client,
+                client: None,
                 cache: Arc::new(RwLock::new(None)),
             };
 

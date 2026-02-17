@@ -44,7 +44,6 @@ impl IntoResponse for CalendarError {
             Self::BadRequest(message) => (StatusCode::BAD_REQUEST, "bad_request", message),
             Self::Internal(message) => {
                 tracing::error!(error = %message, "internal_error");
-                sentry::capture_message(&message, sentry::Level::Error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "internal_server_error",

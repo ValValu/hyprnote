@@ -6,9 +6,6 @@
   "plugins": {
     "deep-link": {
       "desktop": { "schemes": ["hyprnote-staging"] }
-    },
-    "updater": {
-      "active": false
     }
   },
   "bundle": {

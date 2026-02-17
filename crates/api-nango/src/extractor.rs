@@ -145,7 +145,6 @@ impl IntoResponse for NangoConnectionError {
             }
             Self::Database(msg) => {
                 tracing::error!(error = %msg, "nango_connection_db_error");
-                sentry::capture_message(msg, sentry::Level::Error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "internal_server_error",

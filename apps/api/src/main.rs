@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
-use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
 use tower_http::{
     classify::ServerErrorsFailureClass,
@@ -28,13 +27,7 @@ pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 async fn app() -> Router {
     let env = env();
 
-    let analytics = {
-        let mut builder = AnalyticsClientBuilder::default();
-        if let Some(key) = &env.posthog_api_key {
-            builder = builder.with_posthog(key);
-        }
-        Arc::new(builder.build())
-    };
+    let analytics = Arc::new(AnalyticsClientBuilder::default().build());
 
     let llm_config =
         hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
@@ -164,87 +157,82 @@ async fn app() -> Router {
                 .allow_headers(cors::Any),
         )
         .layer(
-            ServiceBuilder::new()
-                .layer(NewSentryLayer::<Request<Body>>::new_from_top())
-                .layer(SentryHttpLayer::new().enable_transaction())
-                .layer(
-                    TraceLayer::new_for_http()
-                        .make_span_with(|request: &Request<Body>| {
-                            let path = request.uri().path();
+            ServiceBuilder::new().layer(
+                TraceLayer::new_for_http()
+                    .make_span_with(|request: &Request<Body>| {
+                        let path = request.uri().path();
 
-                            if path == "/health" {
-                                return tracing::Span::none();
+                        if path == "/health" {
+                            return tracing::Span::none();
+                        }
+
+                        let method = request.method();
+                        let matched_path = request
+                            .extensions()
+                            .get::<MatchedPath>()
+                            .map(MatchedPath::as_str)
+                            .unwrap_or(path);
+                        let (service, span_op) = match path {
+                            p if p.starts_with("/llm") || p.starts_with("/chat/completions") => {
+                                ("llm", "http.server.llm")
                             }
+                            p if p.starts_with("/stt") || p.starts_with("/listen") => {
+                                ("stt", "http.server.stt")
+                            }
+                            _ => ("unknown", "http.server"),
+                        };
 
-                            let method = request.method();
-                            let matched_path = request
-                                .extensions()
-                                .get::<MatchedPath>()
-                                .map(MatchedPath::as_str)
-                                .unwrap_or(path);
-                            let (service, span_op) = match path {
-                                p if p.starts_with("/llm")
-                                    || p.starts_with("/chat/completions") =>
-                                {
-                                    ("llm", "http.server.llm")
-                                }
-                                p if p.starts_with("/stt") || p.starts_with("/listen") => {
-                                    ("stt", "http.server.stt")
-                                }
-                                _ => ("unknown", "http.server"),
-                            };
-
-                            tracing::info_span!(
-                                "http_request",
-                                method = %method,
-                                http.route = %matched_path,
-                                service = %service,
-                                otel.name = %format!("{} {}", method, matched_path),
-                                span.op = %span_op,
-                            )
-                        })
-                        .on_request(|request: &Request<Body>, _span: &tracing::Span| {
-                            // Skip logging for health checks
-                            if request.uri().path() == "/health" {
+                        tracing::info_span!(
+                            "http_request",
+                            method = %method,
+                            http.route = %matched_path,
+                            service = %service,
+                            otel.name = %format!("{} {}", method, matched_path),
+                            span.op = %span_op,
+                        )
+                    })
+                    .on_request(|request: &Request<Body>, _span: &tracing::Span| {
+                        // Skip logging for health checks
+                        if request.uri().path() == "/health" {
+                            return;
+                        }
+                        tracing::info!(
+                            method = %request.method(),
+                            path = %request.uri().path(),
+                            "http_request_started"
+                        );
+                    })
+                    .on_response(
+                        |response: &axum::http::Response<axum::body::Body>,
+                         latency: std::time::Duration,
+                         span: &tracing::Span| {
+                            if span.is_disabled() {
                                 return;
                             }
                             tracing::info!(
-                                method = %request.method(),
-                                path = %request.uri().path(),
-                                "http_request_started"
+                                parent: span,
+                                http_status = %response.status().as_u16(),
+                                latency_ms = %latency.as_millis(),
+                                "http_request_finished"
                             );
-                        })
-                        .on_response(
-                            |response: &axum::http::Response<axum::body::Body>,
-                             latency: std::time::Duration,
-                             span: &tracing::Span| {
-                                if span.is_disabled() {
-                                    return;
-                                }
-                                tracing::info!(
-                                    parent: span,
-                                    http_status = %response.status().as_u16(),
-                                    latency_ms = %latency.as_millis(),
-                                    "http_request_finished"
-                                );
-                            },
-                        )
-                        .on_failure(
-                            |failure_class: ServerErrorsFailureClass,
-                             latency: std::time::Duration,
-                             span: &tracing::Span| {
-                                if span.is_disabled() {
-                                    return;
-                                }
-                                tracing::error!(
-                                    parent: span,
-                                    failure_class = ?failure_class,
-                                    latency_ms = %latency.as_millis(),
-                                    "http_request_failed"
-                                );
-                            },
-                        ),
-                ),
+                        },
+                    )
+                    .on_failure(
+                        |failure_class: ServerErrorsFailureClass,
+                         latency: std::time::Duration,
+                         span: &tracing::Span| {
+                            if span.is_disabled() {
+                                return;
+                            }
+                            tracing::error!(
+                                parent: span,
+                                failure_class = ?failure_class,
+                                latency_ms = %latency.as_millis(),
+                                "http_request_failed"
+                            );
+                        },
+                    ),
+            ),
         )
 }
 
@@ -257,38 +245,12 @@ fn main() -> std::io::Result<()> {
 
     let env = env();
 
-    let _guard = sentry::init(sentry::ClientOptions {
-        dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
-        release: option_env!("APP_VERSION").map(|v| format!("hyprnote-api@{}", v).into()),
-        environment: Some(
-            if cfg!(debug_assertions) {
-                "development"
-            } else {
-                "production"
-            }
-            .into(),
-        ),
-        traces_sample_rate: 1.0,
-        sample_rate: 1.0,
-        send_default_pii: true,
-        auto_session_tracking: true,
-        session_mode: sentry::SessionMode::Request,
-        attach_stacktrace: true,
-        max_breadcrumbs: 100,
-        ..Default::default()
-    });
-
-    sentry::configure_scope(|scope| {
-        scope.set_tag("service", "hyprnote-api");
-    });
-
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "info,tower_http=debug".into()),
         )
         .with(tracing_subscriber::fmt::layer())
-        .with(sentry::integrations::tracing::layer())
         .init();
 
     hypr_transcribe_proxy::ApiKeys::from(&env.stt.stt).log_configured_providers();
@@ -306,10 +268,6 @@ fn main() -> std::io::Result<()> {
                 .await
                 .unwrap();
         });
-
-    if let Some(client) = sentry::Hub::current().client() {
-        client.close(Some(Duration::from_secs(2)));
-    }
 
     Ok(())
 }

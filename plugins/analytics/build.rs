@@ -7,7 +7,6 @@ const COMMANDS: &[&str] = &[
 ];
 
 fn main() {
-    println!("cargo:rerun-if-env-changed=POSTHOG_API_KEY");
     println!("cargo:rerun-if-env-changed=OUTLIT_PUBLIC_KEY");
     println!("cargo:rerun-if-env-changed=APP_VERSION");
 

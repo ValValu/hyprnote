@@ -58,7 +58,6 @@ import { TabContentNote, TabItemNote } from "./sessions";
 import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
-import { Update } from "./update";
 
 export function Body() {
   const { tabs, currentTab } = useTabs(
@@ -328,7 +327,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         )}
 
         <div className="flex items-center gap-1 h-full ml-auto">
-          <Update />
           {!isOnboarding && (
             <Search onManualExpandChange={setIsSearchManuallyExpanded} />
           )}
